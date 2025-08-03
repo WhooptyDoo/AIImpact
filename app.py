@@ -313,6 +313,80 @@ with viz_col3:
 # Additional detailed comparison
 st.header("🌍 Global Electricity Perspective")
 
+# Major countries electricity generation comparison
+st.subheader("GPT-4o vs Major Countries' Electricity Generation")
+
+# Data from the provided image (in TWh per year)
+countries_data = {
+    'United States': 4254,
+    'China': 9456,
+    'India': 1958,
+    'Russia': 1178,
+    'Japan': 1013
+}
+
+# Calculate GPT-4o annual consumption in TWh
+gpt4o_annual_twh = results['energy_per_day_kwh'] * 365 / 1e9
+
+# Create stacked bar chart data
+chart_data = []
+percentages = {}
+
+for country, generation_twh in countries_data.items():
+    percentage = (gpt4o_annual_twh / generation_twh) * 100
+    percentages[country] = percentage
+    
+    chart_data.extend([
+        {'Country': country, 'Type': 'National Grid', 'Value_TWh': generation_twh - gpt4o_annual_twh, 'Percentage': 100 - percentage},
+        {'Country': country, 'Type': 'GPT-4o Infrastructure', 'Value_TWh': gpt4o_annual_twh, 'Percentage': percentage}
+    ])
+
+chart_df = pd.DataFrame(chart_data)
+
+fig_stacked = px.bar(
+    chart_df,
+    x='Country',
+    y='Value_TWh',
+    color='Type',
+    title=f"Annual Electricity: GPT-4o ({gpt4o_annual_twh:.1f} TWh) vs Major Countries",
+    labels={'Value_TWh': 'Annual Electricity Generation (TWh)', 'Country': ''},
+    color_discrete_map={'National Grid': 'lightblue', 'GPT-4o Infrastructure': 'red'}
+)
+
+fig_stacked.update_layout(
+    barmode='stack',
+    height=400,
+    showlegend=True
+)
+
+st.plotly_chart(fig_stacked, use_container_width=True)
+
+# Display percentages
+st.subheader("GPT-4o as Percentage of National Electricity Generation")
+
+percentage_col1, percentage_col2, percentage_col3 = st.columns(3)
+
+with percentage_col1:
+    st.metric("🇺🇸 United States", f"{percentages['United States']:.2f}%", f"{countries_data['United States']} TWh total")
+    st.metric("🇨🇳 China", f"{percentages['China']:.2f}%", f"{countries_data['China']} TWh total")
+
+with percentage_col2:
+    st.metric("🇮🇳 India", f"{percentages['India']:.2f}%", f"{countries_data['India']} TWh total")
+    st.metric("🇷🇺 Russia", f"{percentages['Russia']:.2f}%", f"{countries_data['Russia']} TWh total")
+
+with percentage_col3:
+    st.metric("🇯🇵 Japan", f"{percentages['Japan']:.2f}%", f"{countries_data['Japan']} TWh total")
+
+st.markdown(f"""
+**Key Insights:**
+- GPT-4o infrastructure would consume **{gpt4o_annual_twh:.1f} TWh** annually
+- This represents **{percentages['Japan']:.1f}%** of Japan's total electricity generation
+- It would be **{percentages['India']:.1f}%** of India's electricity generation
+- Equivalent to **{percentages['Russia']:.1f}%** of Russia's total generation
+- Only **{percentages['China']:.2f}%** of China's massive electricity production
+- **{percentages['United States']:.2f}%** of US electricity generation
+""")
+
 comparison_col1, comparison_col2 = st.columns(2)
 
 with comparison_col1:
