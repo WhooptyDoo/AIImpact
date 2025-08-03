@@ -376,13 +376,21 @@ with comparison_col2:
     fig5.update_layout(showlegend=False)
     st.plotly_chart(fig5, use_container_width=True)
     
-    # Additional context
+    # Additional context with accurate household calculations
+    avg_us_household_kwh_per_year = 10632  # Actual average US household consumption
+    annual_energy_kwh = results['energy_per_day_kwh'] * 365
+    homes_powered = int(annual_energy_kwh / avg_us_household_kwh_per_year)
+    
     st.markdown(f"""
     **Power Context:**
-    - **{power_consumption_mw/1000:.1f} GW** total power needed
+    - **{power_consumption_mw/1000:.1f} GW** total power needed continuously
     - Equivalent to **{int(power_consumption_mw / avg_nuclear_plant_mw)}** large nuclear plants
-    - About **{power_consumption_mw/1000/4.5:.1f}** Gigawatts (1 GW serves ~750,000 homes)
-    - Could power approximately **{int(power_consumption_mw * 750):.0f} million** homes
+    - **{int(power_consumption_mw / avg_coal_plant_mw)}** average coal plants
+    - **{int(power_consumption_mw / avg_gas_plant_mw)}** average gas plants
+    - Could power **{homes_powered:,}** average US homes for a full year
+    - Annual consumption: **{annual_energy_kwh/1e9:.1f} TWh** per year
+    - Daily consumption: **{results['energy_per_day_kwh']/1e6:.1f} GWh** per day
+    - Hourly power draw: **{power_consumption_mw/1000:.1f} GW** constant
     """)
 
 # Sensitivity analysis
