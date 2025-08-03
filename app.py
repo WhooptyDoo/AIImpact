@@ -237,45 +237,34 @@ with viz_col1:
     st.plotly_chart(fig1, use_container_width=True)
 
 with viz_col2:
-    # Electricity consumption over time
+    # Electricity consumption over time - all in GWh for consistency
     energy_periods = ['Hour', 'Day', 'Week', 'Month', 'Year']
-    energy_values = [
-        results['power_consumption_kw_average'],  # kW (instantaneous)
-        results['energy_per_day_kwh'],  # kWh per day
-        results['energy_per_day_kwh'] * 7,  # kWh per week
-        results['energy_per_day_kwh'] * 30,  # kWh per month
-        results['energy_per_day_kwh'] * 365  # kWh per year
-    ]
     
-    # Convert to appropriate units for display
-    display_values = [
-        energy_values[0] / 1e6,  # GW
-        energy_values[1] / 1e6,  # GWh
-        energy_values[2] / 1e6,  # GWh
-        energy_values[3] / 1e9,  # TWh
-        energy_values[4] / 1e9   # TWh
-    ]
+    # Calculate consumption for each period in GWh
+    hourly_gwh = results['power_consumption_kw_average'] / 1e6  # Convert kW to GWh (kW/1000/1000)
+    daily_gwh = results['energy_per_day_kwh'] / 1e6  # Convert kWh to GWh
+    weekly_gwh = daily_gwh * 7
+    monthly_gwh = daily_gwh * 30
+    yearly_gwh = daily_gwh * 365
     
-    units = ['GW', 'GWh', 'GWh', 'TWh', 'TWh']
+    energy_values_gwh = [hourly_gwh, daily_gwh, weekly_gwh, monthly_gwh, yearly_gwh]
     
-    fig2 = px.line(
+    fig2 = px.bar(
         x=energy_periods,
-        y=display_values,
+        y=energy_values_gwh,
         title="Electricity Consumption Over Time",
-        labels={'x': 'Time Period', 'y': 'Energy Consumption'},
-        markers=True
+        labels={'x': 'Time Period', 'y': 'Energy Consumption (GWh)'},
+        color=energy_values_gwh,
+        color_continuous_scale='Blues',
+        text=[f"{value:.1f}" for value in energy_values_gwh]
     )
     
-    # Add text annotations with units
-    for i, (period, value, unit) in enumerate(zip(energy_periods, display_values, units)):
-        fig2.add_annotation(
-            x=period,
-            y=value,
-            text=f"{value:.1f} {unit}",
-            showarrow=True,
-            arrowhead=2,
-            yshift=10
-        )
+    fig2.update_traces(textposition='outside')
+    fig2.update_layout(
+        showlegend=False,
+        yaxis_title="Energy Consumption (GWh)",
+        yaxis_tickformat='.1f'
+    )
     
     st.plotly_chart(fig2, use_container_width=True)
 
