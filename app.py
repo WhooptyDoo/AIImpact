@@ -336,9 +336,10 @@ for country, generation_twh in countries_data.items():
     percentage = (gpt4o_annual_twh / generation_twh) * 100
     percentages[country] = percentage
     
+    # Add GPT-4o first so it appears at the bottom of the stack
     chart_data.extend([
-        {'Country': country, 'Type': 'National Grid', 'Value_TWh': generation_twh - gpt4o_annual_twh, 'Percentage': 100 - percentage},
-        {'Country': country, 'Type': 'GPT-4o Infrastructure', 'Value_TWh': gpt4o_annual_twh, 'Percentage': percentage}
+        {'Country': country, 'Type': 'GPT-4o Infrastructure', 'Value_TWh': gpt4o_annual_twh, 'Percentage': percentage},
+        {'Country': country, 'Type': 'National Grid', 'Value_TWh': generation_twh - gpt4o_annual_twh, 'Percentage': 100 - percentage}
     ])
 
 chart_df = pd.DataFrame(chart_data)
