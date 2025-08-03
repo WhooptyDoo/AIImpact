@@ -210,11 +210,11 @@ with cost_col4:
 # Visualizations
 st.header("📊 Data Visualizations")
 
-# Create two columns for visualizations
-viz_col1, viz_col2 = st.columns(2)
+# Create three columns for visualizations
+viz_col1, viz_col2, viz_col3 = st.columns(3)
 
 with viz_col1:
-    # Cost breakdown over time periods
+    # Cost over time visualization
     cost_periods = ['Day', 'Week', 'Month', 'Year']
     cost_values = [
         results['cost_per_day'],
@@ -226,29 +226,175 @@ with viz_col1:
     fig1 = px.bar(
         x=cost_periods,
         y=cost_values,
-        title="Cost Breakdown by Time Period",
+        title="Cost Over Time Periods",
         labels={'x': 'Time Period', 'y': 'Cost ($)'},
         color=cost_values,
-        color_continuous_scale='Blues'
+        color_continuous_scale='Reds',
+        text=[format_currency(v) for v in cost_values]
     )
-    fig1.update_layout(showlegend=False)
+    fig1.update_traces(textposition='outside')
+    fig1.update_layout(showlegend=False, yaxis_tickformat='$,.0f')
     st.plotly_chart(fig1, use_container_width=True)
 
 with viz_col2:
-    # Resource allocation pie chart
-    total_power_mw = results['power_consumption_kw_average'] / 1000
+    # Electricity consumption over time
+    energy_periods = ['Hour', 'Day', 'Week', 'Month', 'Year']
+    energy_values = [
+        results['power_consumption_kw_average'],  # kW (instantaneous)
+        results['energy_per_day_kwh'],  # kWh per day
+        results['energy_per_day_kwh'] * 7,  # kWh per week
+        results['energy_per_day_kwh'] * 30,  # kWh per month
+        results['energy_per_day_kwh'] * 365  # kWh per year
+    ]
     
-    # Simulate different data center regions for demonstration
-    regions = ['US West', 'US East', 'Europe', 'Asia Pacific']
-    power_distribution = [0.35, 0.25, 0.25, 0.15]  # Proportional distribution
-    power_by_region = [total_power_mw * dist for dist in power_distribution]
+    # Convert to appropriate units for display
+    display_values = [
+        energy_values[0] / 1e6,  # GW
+        energy_values[1] / 1e6,  # GWh
+        energy_values[2] / 1e6,  # GWh
+        energy_values[3] / 1e9,  # TWh
+        energy_values[4] / 1e9   # TWh
+    ]
     
-    fig2 = px.pie(
-        values=power_by_region,
-        names=regions,
-        title="Power Distribution by Region"
+    units = ['GW', 'GWh', 'GWh', 'TWh', 'TWh']
+    
+    fig2 = px.line(
+        x=energy_periods,
+        y=display_values,
+        title="Electricity Consumption Over Time",
+        labels={'x': 'Time Period', 'y': 'Energy Consumption'},
+        markers=True
     )
+    
+    # Add text annotations with units
+    for i, (period, value, unit) in enumerate(zip(energy_periods, display_values, units)):
+        fig2.add_annotation(
+            x=period,
+            y=value,
+            text=f"{value:.1f} {unit}",
+            showarrow=True,
+            arrowhead=2,
+            yshift=10
+        )
+    
     st.plotly_chart(fig2, use_container_width=True)
+
+with viz_col3:
+    # Electricity comparison to countries/entities
+    annual_energy_twh = results['energy_per_day_kwh'] * 365 / 1e9  # Convert to TWh per year
+    
+    # Real-world electricity consumption data (TWh per year, approximate)
+    comparisons = {
+        'GPT-4o Infrastructure': annual_energy_twh,
+        'Denmark': 33,
+        'Ireland': 29,
+        'New Zealand': 42,
+        'Switzerland': 58,
+        'Belgium': 84,
+        'Chile': 77,
+        'Finland': 85,
+        'Czech Republic': 62,
+        'Portugal': 50
+    }
+    
+    # Sort by consumption
+    sorted_comparisons = dict(sorted(comparisons.items(), key=lambda x: x[1], reverse=True))
+    
+    fig3 = px.bar(
+        x=list(sorted_comparisons.keys()),
+        y=list(sorted_comparisons.values()),
+        title="Annual Electricity: GPT-4o vs Countries",
+        labels={'x': 'Entity', 'y': 'Annual Consumption (TWh)'},
+        color=list(sorted_comparisons.values()),
+        color_continuous_scale='Greens'
+    )
+    
+    # Highlight our infrastructure bar
+    colors = ['red' if entity == 'GPT-4o Infrastructure' else 'lightblue' 
+              for entity in sorted_comparisons.keys()]
+    fig3.update_traces(marker_color=colors)
+    
+    fig3.update_layout(
+        showlegend=False,
+        xaxis_tickangle=-45,
+        height=400
+    )
+    st.plotly_chart(fig3, use_container_width=True)
+
+# Additional detailed comparison
+st.header("🌍 Global Electricity Perspective")
+
+comparison_col1, comparison_col2 = st.columns(2)
+
+with comparison_col1:
+    # More comprehensive country comparison
+    annual_energy_twh = results['energy_per_day_kwh'] * 365 / 1e9
+    
+    country_data = {
+        'Entity': ['GPT-4o Infrastructure', 'Argentina', 'Thailand', 'Egypt', 'Ukraine', 
+                   'Malaysia', 'South Africa', 'Vietnam', 'Bangladesh', 'Philippines',
+                   'Morocco', 'Nigeria', 'Algeria', 'Peru', 'Israel'],
+        'Annual_TWh': [annual_energy_twh, 131, 187, 203, 124, 169, 234, 254, 75, 98,
+                       32, 31, 71, 56, 65],
+        'Type': ['AI Infrastructure'] + ['Country'] * 14
+    }
+    
+    comparison_df = pd.DataFrame(country_data)
+    comparison_df = comparison_df.sort_values('Annual_TWh', ascending=True)
+    
+    fig4 = px.bar(
+        comparison_df,
+        x='Annual_TWh',
+        y='Entity',
+        orientation='h',
+        title="GPT-4o vs National Electricity Consumption",
+        labels={'Annual_TWh': 'Annual Consumption (TWh)', 'Entity': ''},
+        color='Type',
+        color_discrete_map={'AI Infrastructure': 'red', 'Country': 'lightblue'}
+    )
+    
+    fig4.update_layout(height=500, showlegend=True)
+    st.plotly_chart(fig4, use_container_width=True)
+
+with comparison_col2:
+    # Power plant equivalents
+    avg_coal_plant_mw = 600  # Average coal plant capacity
+    avg_nuclear_plant_mw = 1000  # Average nuclear plant capacity
+    avg_gas_plant_mw = 400  # Average gas plant capacity
+    
+    power_consumption_mw = results['power_consumption_kw_average'] / 1000
+    
+    equivalents = {
+        'Power Plant Type': ['Coal Plants', 'Nuclear Plants', 'Gas Plants'],
+        'Number of Plants': [
+            int(power_consumption_mw / avg_coal_plant_mw),
+            int(power_consumption_mw / avg_nuclear_plant_mw),
+            int(power_consumption_mw / avg_gas_plant_mw)
+        ]
+    }
+    
+    fig5 = px.bar(
+        x=equivalents['Power Plant Type'],
+        y=equivalents['Number of Plants'],
+        title="Equivalent Number of Power Plants",
+        labels={'x': 'Plant Type', 'y': 'Number of Plants'},
+        color=equivalents['Number of Plants'],
+        color_continuous_scale='Oranges',
+        text=equivalents['Number of Plants']
+    )
+    
+    fig5.update_traces(textposition='outside')
+    fig5.update_layout(showlegend=False)
+    st.plotly_chart(fig5, use_container_width=True)
+    
+    # Additional context
+    st.markdown(f"""
+    **Power Context:**
+    - **{power_consumption_mw/1000:.1f} GW** total power needed
+    - Equivalent to **{int(power_consumption_mw / avg_nuclear_plant_mw)}** large nuclear plants
+    - About **{power_consumption_mw/1000/4.5:.1f}** Gigawatts (1 GW serves ~750,000 homes)
+    - Could power approximately **{int(power_consumption_mw * 750):.0f} million** homes
+    """)
 
 # Sensitivity analysis
 st.header("🔍 Sensitivity Analysis")
@@ -368,8 +514,8 @@ export_data = {
         'Electricity Cost ($/kWh)', 'Peak Load Multiplier'
     ],
     'Value': [
-        f"{total_users/1e9:.1f}B", queries_per_user_per_day, tokens_per_query,
-        gpt4o_throughput, gpu_power_consumption, electricity_cost_per_kwh, peak_load_multiplier
+        f"{total_users/1e9:.1f}B", str(queries_per_user_per_day), str(tokens_per_query),
+        str(gpt4o_throughput), str(gpu_power_consumption), str(electricity_cost_per_kwh), str(peak_load_multiplier)
     ]
 }
 
