@@ -159,8 +159,12 @@ def format_currency(amount):
 # Display results
 st.header("📈 Infrastructure Requirements")
 
-# Create columns for metrics
-col1, col2, col3, col4 = st.columns(4)
+# Create columns for metrics (5 columns now to include hardware cost)
+col1, col2, col3, col4, col5 = st.columns(5)
+
+# Calculate total hardware cost
+h100_cost = 35000  # $35,000 per H100
+total_hardware_cost = results['gpus_needed_average'] * h100_cost
 
 with col1:
     st.metric(
@@ -190,6 +194,13 @@ with col4:
         delta=f"Peak: {results['power_consumption_kw_peak']/1e6:.2f} GW"
     )
 
+with col5:
+    st.metric(
+        "Total Hardware Cost",
+        format_currency(total_hardware_cost),
+        delta=f"@${h100_cost:,} per H100"
+    )
+
 # Cost breakdown
 st.header("💰 Cost Breakdown")
 
@@ -206,6 +217,29 @@ with cost_col3:
 
 with cost_col4:
     st.metric("Annual Cost", format_currency(results['cost_per_year']))
+
+# Inference details
+st.header("🔍 Inference Details")
+
+# Calculate per-query metrics
+cost_per_query = results['cost_per_day'] / results['daily_queries']
+electricity_per_query_kwh = results['energy_per_day_kwh'] / results['daily_queries']
+
+inference_col1, inference_col2 = st.columns(2)
+
+with inference_col1:
+    st.metric(
+        "Average Cost per Query",
+        f"${cost_per_query:.4f}",
+        delta=f"${cost_per_query*1000:.2f} per 1K queries"
+    )
+
+with inference_col2:
+    st.metric(
+        "Average Electricity per Query",
+        f"{electricity_per_query_kwh*1000:.3f} Wh",
+        delta=f"{electricity_per_query_kwh:.6f} kWh per query"
+    )
 
 # Visualizations
 st.header("📊 Data Visualizations")
