@@ -228,10 +228,20 @@ electricity_per_query_kwh = results['energy_per_day_kwh'] / results['daily_queri
 inference_col1, inference_col2 = st.columns(2)
 
 with inference_col1:
+    # Format cost per query with appropriate precision
+    if cost_per_query >= 0.01:
+        cost_display = f"${cost_per_query:.4f}"
+    elif cost_per_query >= 0.001:
+        cost_display = f"${cost_per_query:.5f}"
+    elif cost_per_query >= 0.0001:
+        cost_display = f"${cost_per_query:.6f}"
+    else:
+        cost_display = f"${cost_per_query:.8f}"
+    
     st.metric(
         "Average Cost per Query",
-        f"${cost_per_query:.4f}",
-        delta=f"${cost_per_query*1000:.2f} per 1K queries"
+        cost_display,
+        delta=f"${cost_per_query*1000:.4f} per 1K queries"
     )
 
 with inference_col2:
@@ -247,7 +257,7 @@ st.header("📊 Data Visualizations")
 # Scaling charts with user base
 st.subheader("Infrastructure Scaling with User Base")
 
-# Generate data for 1 to 8 billion users
+# Generate data for 1 to 8 billion users using current parameters
 user_range = np.linspace(1, 8, 15)  # 1 to 8 billion users in 15 steps
 scaling_results = []
 
@@ -527,19 +537,19 @@ with comparison_col1:
     st.plotly_chart(fig4, use_container_width=True)
 
 with comparison_col2:
-    # Power plant equivalents
+    # Power plant equivalents using current parameters
     avg_coal_plant_mw = 600  # Average coal plant capacity
     avg_nuclear_plant_mw = 1000  # Average nuclear plant capacity
     avg_gas_plant_mw = 400  # Average gas plant capacity
     
-    power_consumption_mw = results['power_consumption_kw_average'] / 1000
+    current_power_mw = results['power_consumption_kw_average'] / 1000
     
     equivalents = {
         'Power Plant Type': ['Coal Plants', 'Nuclear Plants', 'Gas Plants'],
         'Number of Plants': [
-            int(power_consumption_mw / avg_coal_plant_mw),
-            int(power_consumption_mw / avg_nuclear_plant_mw),
-            int(power_consumption_mw / avg_gas_plant_mw)
+            int(current_power_mw / avg_coal_plant_mw),
+            int(current_power_mw / avg_nuclear_plant_mw),
+            int(current_power_mw / avg_gas_plant_mw)
         ]
     }
     
@@ -557,21 +567,22 @@ with comparison_col2:
     fig5.update_layout(showlegend=False)
     st.plotly_chart(fig5, use_container_width=True)
     
-    # Additional context with accurate household calculations
+    # Additional context with accurate household calculations using current parameters
     avg_us_household_kwh_per_year = 10632  # Actual average US household consumption
-    annual_energy_kwh = results['energy_per_day_kwh'] * 365
-    homes_powered = int(annual_energy_kwh / avg_us_household_kwh_per_year)
+    current_annual_energy_kwh = results['energy_per_day_kwh'] * 365
+    current_homes_powered = int(current_annual_energy_kwh / avg_us_household_kwh_per_year)
+    current_power_consumption_mw = results['power_consumption_kw_average'] / 1000
     
     st.markdown(f"""
     **Power Context:**
-    - **{power_consumption_mw/1000:.1f} GW** total power needed continuously
-    - Equivalent to **{int(power_consumption_mw / avg_nuclear_plant_mw)}** large nuclear plants
-    - **{int(power_consumption_mw / avg_coal_plant_mw)}** average coal plants
-    - **{int(power_consumption_mw / avg_gas_plant_mw)}** average gas plants
-    - Could power **{homes_powered:,}** average US homes for a full year
-    - Annual consumption: **{annual_energy_kwh/1e9:.1f} TWh** per year
+    - **{current_power_consumption_mw/1000:.1f} GW** total power needed continuously
+    - Equivalent to **{int(current_power_consumption_mw / avg_nuclear_plant_mw)}** large nuclear plants
+    - **{int(current_power_consumption_mw / avg_coal_plant_mw)}** average coal plants
+    - **{int(current_power_consumption_mw / avg_gas_plant_mw)}** average gas plants
+    - Could power **{current_homes_powered:,}** average US homes for a full year
+    - Annual consumption: **{current_annual_energy_kwh/1e9:.1f} TWh** per year
     - Daily consumption: **{results['energy_per_day_kwh']/1e6:.1f} GWh** per day
-    - Hourly power draw: **{power_consumption_mw/1000:.1f} GW** constant
+    - Hourly power draw: **{current_power_consumption_mw/1000:.1f} GW** constant
     """)
 
 # Sensitivity analysis
