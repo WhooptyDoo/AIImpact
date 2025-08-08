@@ -210,6 +210,78 @@ with cost_col4:
 # Visualizations
 st.header("📊 Data Visualizations")
 
+# Scaling charts with user base
+st.subheader("Infrastructure Scaling with User Base")
+
+# Generate data for 1 to 8 billion users
+user_range = np.linspace(1, 8, 15)  # 1 to 8 billion users in 15 steps
+scaling_results = []
+
+for users_billions in user_range:
+    temp_users = users_billions * 1e9
+    temp_daily_queries = temp_users * queries_per_user_per_day
+    temp_qps = temp_daily_queries / (24 * 60 * 60)
+    temp_tps = temp_qps * tokens_per_query
+    temp_gpus = temp_tps / gpt4o_throughput
+    temp_power_kw = temp_gpus * (gpu_power_consumption / 1000)
+    temp_energy_day = temp_power_kw * 24
+    temp_cost_day = temp_energy_day * electricity_cost_per_kwh
+    temp_cost_year = temp_cost_day * 365
+    
+    scaling_results.append({
+        'Users_Billions': users_billions,
+        'H100_Chips_Millions': temp_gpus / 1e6,
+        'Daily_Electricity_GWh': temp_energy_day / 1e6,
+        'Annual_Cost_Billions': temp_cost_year / 1e9
+    })
+
+scaling_df = pd.DataFrame(scaling_results)
+
+# Create three charts for scaling analysis
+scaling_col1, scaling_col2, scaling_col3 = st.columns(3)
+
+with scaling_col1:
+    fig_chips = px.line(
+        scaling_df,
+        x='Users_Billions',
+        y='H100_Chips_Millions',
+        title="H100 Chips vs Users",
+        labels={'Users_Billions': 'Users (Billions)', 'H100_Chips_Millions': 'H100 Chips (Millions)'},
+        markers=True
+    )
+    fig_chips.update_traces(line=dict(color='orange', width=3))
+    fig_chips.update_layout(showlegend=False)
+    st.plotly_chart(fig_chips, use_container_width=True)
+
+with scaling_col2:
+    fig_electricity = px.line(
+        scaling_df,
+        x='Users_Billions',
+        y='Daily_Electricity_GWh',
+        title="Daily Electricity vs Users",
+        labels={'Users_Billions': 'Users (Billions)', 'Daily_Electricity_GWh': 'Daily Electricity (GWh)'},
+        markers=True
+    )
+    fig_electricity.update_traces(line=dict(color='blue', width=3))
+    fig_electricity.update_layout(showlegend=False)
+    st.plotly_chart(fig_electricity, use_container_width=True)
+
+with scaling_col3:
+    fig_cost = px.line(
+        scaling_df,
+        x='Users_Billions',
+        y='Annual_Cost_Billions',
+        title="Annual Cost vs Users",
+        labels={'Users_Billions': 'Users (Billions)', 'Annual_Cost_Billions': 'Annual Cost ($ Billions)'},
+        markers=True
+    )
+    fig_cost.update_traces(line=dict(color='green', width=3))
+    fig_cost.update_layout(showlegend=False)
+    st.plotly_chart(fig_cost, use_container_width=True)
+
+# Current operational visualizations
+st.subheader("Current Infrastructure Requirements")
+
 # Create three columns for visualizations
 viz_col1, viz_col2, viz_col3 = st.columns(3)
 
