@@ -504,6 +504,74 @@ st.markdown(f"""
 - **{percentages['United States']:.2f}%** of US electricity generation
 """)
 
+# Industry Comparison
+st.subheader("Industry Comparison")
+
+# Current GPT-4o annual consumption
+current_gpt4o_twh = results['energy_per_day_kwh'] * 365 / 1e9
+
+# Industry comparison data
+industry_data = {
+    'Category': [
+        'GPT-4o AI Infrastructure',
+        'Global Solar Generation (2023)',
+        'Global Bitcoin Mining (2023)',
+        'US Residential Sector (2024)',
+        'US Manufacturing Sector (2024)',
+        'China Manufacturing Sector (2024)'
+    ],
+    'Annual_TWh': [
+        current_gpt4o_twh,
+        303,
+        120,
+        1494,
+        1026,
+        9850
+    ],
+    'Type': [
+        'AI Infrastructure',
+        'Renewable Energy',
+        'Cryptocurrency',
+        'Residential',
+        'Manufacturing',
+        'Manufacturing'
+    ]
+}
+
+industry_df = pd.DataFrame(industry_data)
+industry_df = industry_df.sort_values('Annual_TWh', ascending=True)
+
+fig_industry = px.bar(
+    industry_df,
+    x='Annual_TWh',
+    y='Category',
+    orientation='h',
+    title=f"Annual Electricity Consumption: GPT-4o ({current_gpt4o_twh:.1f} TWh) vs Industries",
+    labels={'Annual_TWh': 'Annual Electricity Consumption (TWh)', 'Category': ''},
+    color='Type',
+    color_discrete_map={
+        'AI Infrastructure': 'red',
+        'Renewable Energy': 'green',
+        'Cryptocurrency': 'orange',
+        'Residential': 'lightblue',
+        'Manufacturing': 'purple'
+    }
+)
+
+fig_industry.update_layout(height=400, showlegend=True)
+st.plotly_chart(fig_industry, use_container_width=True)
+
+# Industry insights
+st.markdown(f"""
+**Industry Insights:**
+- GPT-4o infrastructure (**{current_gpt4o_twh:.1f} TWh**) would consume:
+  - **{(current_gpt4o_twh/120)*100:.1f}%** of global Bitcoin mining electricity
+  - **{(current_gpt4o_twh/303)*100:.1f}%** of global solar electricity generation
+  - **{(current_gpt4o_twh/1494)*100:.1f}%** of US residential electricity consumption
+  - **{(current_gpt4o_twh/1026)*100:.1f}%** of US manufacturing electricity consumption
+  - **{(current_gpt4o_twh/9850)*100:.2f}%** of China's manufacturing electricity consumption
+""")
+
 comparison_col1, comparison_col2 = st.columns(2)
 
 with comparison_col1:
