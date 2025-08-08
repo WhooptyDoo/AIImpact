@@ -539,7 +539,11 @@ industry_data = {
 }
 
 industry_df = pd.DataFrame(industry_data)
-industry_df = industry_df.sort_values('Annual_TWh', ascending=True)
+
+# Custom sort: GPT-4o at bottom, others sorted by consumption (highest to lowest)
+gpt4o_row = industry_df[industry_df['Category'] == 'GPT-4o AI Infrastructure']
+other_rows = industry_df[industry_df['Category'] != 'GPT-4o AI Infrastructure'].sort_values('Annual_TWh', ascending=False)
+industry_df = pd.concat([other_rows, gpt4o_row], ignore_index=True)
 
 fig_industry = px.bar(
     industry_df,
