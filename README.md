@@ -1,10 +1,6 @@
 # GPT-4o Infrastructure Calculator
 
 <img width="1745" height="763" alt="image" src="https://github.com/user-attachments/assets/6bfb4cb8-d4b8-4e9e-8624-3345649c3988" />
-<img width="1496" height="392" alt="image" src="https://github.com/user-attachments/assets/bd420e2d-b61e-46dc-ba40-66e938dfbd20" />
-<img width="1467" height="393" alt="image" src="https://github.com/user-attachments/assets/ec279989-b7e7-48d7-8489-932b4cf056f7" />
-<img width="1467" height="728" alt="image" src="https://github.com/user-attachments/assets/4ecfbfcf-627b-4b93-9b9e-6bb3286daef4" />
-<img width="1444" height="537" alt="image" src="https://github.com/user-attachments/assets/83b65781-8a20-4eeb-a5be-9b0f4355dd4d" />
 
 ## Overview
 
